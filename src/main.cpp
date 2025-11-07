@@ -8,7 +8,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include "Planet.h"
-
+#include "Grid.h"
 
 void processInput(GLFWwindow* window, Camera& camera, float deltaTime);
 
@@ -40,6 +40,7 @@ int main(){
         std::cerr << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
+    glEnable(GL_DEPTH_TEST);
 
     float vertices[] = {
             // positions                        // colors
@@ -68,21 +69,22 @@ int main(){
 
     //Define camera(s)
     Camera camera(
-            glm::vec3(0.0f, 0.0f, 10.0f), //pos
+            glm::vec3(-17.0f, 4.0f, -8.0f), //pos
             glm::vec3(0.0f, 1.0f, 0.0f), //WorldUp
-            -90.0f, //yaw
-            0.0f //pitch
+            20.0f, //yaw
+            -20.0f //pitch
             );
     //Define shaders
-    Planet earth(3, M_PI, 5, 2, 2, glm::vec3(0.3f, 0.2f, 0.2f));
+    Planet earth(1, 1.0f,  M_PI, 5, 1, 2, glm::vec3(0.3f, 0.2f, 0.2f));
     Shader planetShader("shaders/pvShader.glsl", "shaders/pfShader.glsl");
 
-
+    Shader gridShader("shaders/gridvert.glsl", "shaders/gridfrag.glsl");
+    Grid grid(200, 0.1f);
 
     while(!glfwWindowShouldClose(window)){
 
         glClearColor(0.0f, 0.0f, 0.0f,0.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         //Frame calculation
         float currentFrame = glfwGetTime();
@@ -96,12 +98,22 @@ int main(){
         glm::mat4 view = camera.getViewMatrix();
         glm::mat4 projection;
         projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+        planetShader.use();
 
         planetShader.setMat4("projection", projection);
         planetShader.setMat4("view", view);
-        planetShader.use();
         earth.draw(planetShader);
-       // earth.update(glfwGetTime());
+
+        std::vector<Grid::GravitySource> sources;
+        sources.push_back({ earth.worldPosition, earth.mass });
+
+        grid.update(sources);
+        gridShader.use();
+        gridShader.setMat4("projection", projection);
+        gridShader.setMat4("view", view);
+        gridShader.setMat4("model", glm::mat4(1.0f));
+        grid.draw(gridShader);
+        earth.update(glfwGetTime());
 
         glfwSwapBuffers(window);
         glfwPollEvents();

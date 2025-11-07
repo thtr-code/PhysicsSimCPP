@@ -1,9 +1,9 @@
 #include "Planet.h"
 #include <glm/gtc/matrix_transform.hpp>
 
-Planet::Planet(float radius, float orbitAngle, float distance, float orbitSpeed, float rotationSpeed, glm::vec3 color):
+Planet::Planet(float radius, float mass, float orbitAngle, float distance, float orbitSpeed, float rotationSpeed, glm::vec3 color):
 
-radius(radius), orbitAngle(orbitAngle),distance(distance),
+radius(radius), mass(mass), orbitAngle(orbitAngle),distance(distance),
 orbitSpeed(orbitSpeed), rotationSpeed(rotationSpeed), color(color),
 model(glm::mat4(1.0f)) {
 
@@ -22,12 +22,18 @@ model(glm::mat4(1.0f)) {
 
     glBindVertexArray(0);
 
+
 } ;
 
 void Planet::update(float time) {
-    orbitAngle += orbitSpeed * 0.01f;
+    orbitAngle += orbitSpeed * 0.005f;
 
     model = glm::mat4(1.0f);
+
+    float x = distance * cos(orbitAngle);
+    float z = distance * sin(orbitAngle);
+
+    worldPosition = glm::vec3(x, 0.0f, z);
 
     model = glm::translate(model, glm::vec3(distance * cos(orbitAngle),
                                             0.0f,

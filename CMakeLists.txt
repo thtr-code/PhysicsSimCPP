@@ -23,6 +23,8 @@ add_executable(BlackholeSim
         src/Planet.cpp
         src/Camera.h
         src/Camera.cpp
+        src/Grid.cpp
+        src/Grid.h
 )
 
 target_link_libraries(BlackholeSim
