@@ -21,6 +21,8 @@ add_executable(BlackholeSim
         libs/glad/src/glad.c
         src/Planet.h
         src/Planet.cpp
+        src/Camera.h
+        src/Camera.cpp
 )
 
 target_link_libraries(BlackholeSim

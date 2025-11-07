@@ -1,6 +1,7 @@
 #include <glad/glad.h> // MUST include glad BEFORE glfw
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include "Camera.h"
 #include "Shader.h"
 #include <filesystem>
 #include <glm/glm.hpp>
@@ -8,6 +9,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "Planet.h"
 
+
+void processInput(GLFWwindow* window, Camera& camera, float deltaTime);
 
 
 int width = 800;
@@ -59,40 +62,52 @@ int main(){
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
+    float deltaTime = 0.0f;
+    float lastFrame = 0.0f;
+
+
+    //Define camera(s)
+    Camera camera(
+            glm::vec3(0.0f, 0.0f, 10.0f), //pos
+            glm::vec3(0.0f, 1.0f, 0.0f), //WorldUp
+            -90.0f, //yaw
+            0.0f //pitch
+            );
+    //Define shaders
     Planet earth(3, M_PI, 5, 2, 2, glm::vec3(0.3f, 0.2f, 0.2f));
     Shader planetShader("shaders/pvShader.glsl", "shaders/pfShader.glsl");
 
+
+
     while(!glfwWindowShouldClose(window)){
+
         glClearColor(0.0f, 0.0f, 0.0f,0.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-     /*   glm::mat4 transform = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-        transform = glm::translate(transform, glm::vec3(0.0f, 0.0f, 1.0f));
-        transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-     */
+        //Frame calculation
+        float currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
 
-        glm::mat4 view = glm::mat4(1.0f);
-        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -40.0f));
+        processInput(window, camera, deltaTime);
+
+
+        //Define projection and view for every shader s.t they are affected by the camera view
+        glm::mat4 view = camera.getViewMatrix();
         glm::mat4 projection;
         projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
-        float time = glfwGetTime();
-        planetShader.use();
-        earth.update(time);
         planetShader.setMat4("projection", projection);
         planetShader.setMat4("view", view);
+        planetShader.use();
         earth.draw(planetShader);
-
-
-      /*  glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-*/
+       // earth.update(glfwGetTime());
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
+
 
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
@@ -100,4 +115,18 @@ int main(){
     return 0;
 
 }
+void processInput(GLFWwindow* window, Camera& camera, float deltaTime)
+{
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, true);
 
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        camera.processKeyboard(FORWARD, deltaTime);
+
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        camera.processKeyboard(BACKWARD, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        camera.processKeyboard(LEFT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        camera.processKeyboard(RIGHT, deltaTime);
+}
