@@ -2,7 +2,7 @@
 
 Camera::Camera(glm::vec3 position, glm::vec3 worldUp, float yaw, float pitch)
         : position(position), worldUp(worldUp), yaw(yaw), pitch(pitch),
-          speed(3.0f), sensitivity(0.1f), zoom(45.0f)
+          speed(7.0f), sensitivity(0.1f), zoom(45.0f)
 {
     front = glm::vec3(0.0f, 0.0f, -1.0f);
     updateCameraVectors();
@@ -24,6 +24,25 @@ void Camera::processKeyboard(Camera_Movement direction, float deltaTime) {
         position -= right * velocity;
     if (direction == RIGHT)
         position += right * velocity;
+    if (direction == UP)
+        position += up * velocity;
+    if (direction == DOWN)
+        position -= up * velocity;
+
+}
+void Camera::processMouseMovement(double xoffset, double yoffset) {
+
+    pitch += sensitivity * yoffset;
+    yaw += sensitivity * xoffset;
+
+    if(pitch >= 89){
+        pitch == 89;
+    }
+    if(yaw >= 89){
+        yaw == 89;
+    }
+
+    updateCameraVectors();
 }
 
 void Camera::updateCameraVectors() {
@@ -35,4 +54,8 @@ void Camera::updateCameraVectors() {
 
     right = glm::normalize(glm::cross(front, worldUp));
     up    = glm::normalize(glm::cross(right, front));
+
+
+
+
 }

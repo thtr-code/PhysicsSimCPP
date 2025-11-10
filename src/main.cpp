@@ -10,11 +10,14 @@
 #include "Planet.h"
 #include "Grid.h"
 
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void processInput(GLFWwindow* window, Camera& camera, float deltaTime);
 
-
+bool firstMouse = true;
 int width = 800;
 int height = 600;
+float lastX = width / 2.0f;
+float lastY = height / 2.0f;
 
 int main(){
     if(!glfwInit()){
@@ -48,6 +51,7 @@ int main(){
             -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
             0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // top
     };
+    glfwSetCursorPosCallback(window, mouse_callback);
 
     Shader shader("shaders/vertexShader.glsl", "shaders/fragmentShader.glsl");
     unsigned int VBO, VAO;
@@ -79,34 +83,39 @@ int main(){
     Shader planetShader("shaders/pvShader.glsl", "shaders/pfShader.glsl");
 
     Shader gridShader("shaders/gridvert.glsl", "shaders/gridfrag.glsl");
-    Grid grid(200, 0.1f);
+    Grid grid(50, 0.4f);
 
     while(!glfwWindowShouldClose(window)){
 
         glClearColor(0.0f, 0.0f, 0.0f,0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
         //Frame calculation
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
+        double xpos = 5;
+
         processInput(window, camera, deltaTime);
+        glfwSetWindowUserPointer(window, &camera);
 
 
         //Define projection and view for every shader s.t they are affected by the camera view
+
+        //Earth
         glm::mat4 view = camera.getViewMatrix();
         glm::mat4 projection;
         projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
         planetShader.use();
-
         planetShader.setMat4("projection", projection);
         planetShader.setMat4("view", view);
         earth.draw(planetShader);
 
+        //Grid
         std::vector<Grid::GravitySource> sources;
         sources.push_back({ earth.worldPosition, earth.mass });
-
         grid.update(sources);
         gridShader.use();
         gridShader.setMat4("projection", projection);
@@ -118,8 +127,6 @@ int main(){
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-
-
 
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
@@ -141,4 +148,37 @@ void processInput(GLFWwindow* window, Camera& camera, float deltaTime)
         camera.processKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.processKeyboard(RIGHT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+        camera.processKeyboard(UP, deltaTime);
+
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        camera.processKeyboard(DOWN, deltaTime);
+
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+        camera.processKeyboard(LOOKLEFT, deltaTime);
+
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+        camera.processKeyboard(LOOKRIGHT, deltaTime);
+
+}
+void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
+{
+    Camera* camera = static_cast<Camera*>(glfwGetWindowUserPointer(window));
+    float xpos = static_cast<float>(xposIn);
+    float ypos = static_cast<float>(yposIn);
+
+    if (firstMouse)
+    {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+
+    lastX = xpos;
+    lastY = ypos;
+
+    camera->processMouseMovement(xoffset, yoffset);
 }

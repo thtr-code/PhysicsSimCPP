@@ -52,11 +52,19 @@ void Grid::update(const std::vector<Grid::GravitySource> &sources) {
 
         float dip = 0.0f;
 
+        float G = 1.0f;
+        float soft = 0.5f;
         for (const auto &src : sources) {
-            float dist = glm::distance(glm::vec3(x, 0.0f, z), src.position);
-            if (dist < 0.001f) dist = 0.001f;
 
-            dip += -src.mass / (dist * 5.0f);
+            float dx = x - src.position.x;
+            float dz = z - src.position.z;
+            float dy = 0.0f - src.position.y;
+
+            float dist = sqrt(dx*dx + dy*dy + dz*dz + soft*soft);
+
+            dip += -G * src.mass / dist;  //U = -G *m/r
+
+
         }
 
         y = dip;

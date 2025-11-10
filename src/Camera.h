@@ -5,7 +5,11 @@ enum Camera_Movement{
     FORWARD,
     BACKWARD,
     LEFT,
-    RIGHT
+    RIGHT,
+    UP,
+    DOWN,
+    LOOKLEFT,
+    LOOKRIGHT
 };
 class Camera{
 
@@ -19,6 +23,9 @@ public:
     Camera(glm::vec3 position, glm::vec3 worldUp, float yaw, float pitch);
     glm::mat4 getViewMatrix();
     void processKeyboard(Camera_Movement direction, float deltaTime);
+
+    void processMouseMovement(double xoffset, double yoffset);
+
 private:
    void updateCameraVectors();
 

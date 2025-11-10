@@ -36,7 +36,7 @@ void Planet::update(float time) {
     worldPosition = glm::vec3(x, 0.0f, z);
 
     model = glm::translate(model, glm::vec3(distance * cos(orbitAngle),
-                                            0.0f,
+                                            1.0f,
                                             distance * sin(orbitAngle)));
 
     model = glm::rotate(model, time * rotationSpeed, glm::vec3(0.0f, 1.0f, 0.0f));
