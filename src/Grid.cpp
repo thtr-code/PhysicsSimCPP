@@ -1,5 +1,5 @@
 #include "Grid.h"
-
+#include <cmath>
 
 Grid::Grid(int gridcount, float gridspacing):
         gridcount(gridcount), gridspacing(gridspacing)
@@ -42,6 +42,7 @@ void Grid::generateGrid(){
         }
     }
 }
+
 void Grid::update(const std::vector<Grid::GravitySource> &sources) {
 
     for (int i = 0; i < vertexCount; i++) {
@@ -52,19 +53,19 @@ void Grid::update(const std::vector<Grid::GravitySource> &sources) {
 
         float dip = 0.0f;
 
-        float G = 1.0f;
+        // Make the grid dip weaker so it stays in view
+        float G = 0.1f;      // was 1.0f before
         float soft = 0.5f;
+
         for (const auto &src : sources) {
 
             float dx = x - src.position.x;
             float dz = z - src.position.z;
             float dy = 0.0f - src.position.y;
 
-            float dist = sqrt(dx*dx + dy*dy + dz*dz + soft*soft);
+            float dist = std::sqrt(dx*dx + dy*dy + dz*dz + soft*soft);
 
-            dip += -G * src.mass / dist;  //U = -G *m/r
-
-
+            dip += -G * src.mass / dist;  // U ~ -G * m / r
         }
 
         y = dip;
@@ -76,6 +77,7 @@ void Grid::update(const std::vector<Grid::GravitySource> &sources) {
                     vertices.size() * sizeof(float),
                     vertices.data());
 }
+
 void Grid::draw(Shader &shader)
 {
     glBindVertexArray(VAO);
@@ -111,5 +113,3 @@ void Grid::draw(Shader &shader)
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
-
-

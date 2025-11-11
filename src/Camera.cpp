@@ -28,6 +28,13 @@ void Camera::processKeyboard(Camera_Movement direction, float deltaTime) {
         position += up * velocity;
     if (direction == DOWN)
         position -= up * velocity;
+    if (direction == LOOKLEFT)
+        yaw -= sensitivity * 5;
+    updateCameraVectors();
+    if (direction == LOOKRIGHT)
+        yaw += sensitivity * 5;
+    updateCameraVectors();
+
 
 }
 void Camera::processMouseMovement(double xoffset, double yoffset) {
