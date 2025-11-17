@@ -17,16 +17,16 @@ public:
     unsigned int ID;
 
     Shader(const char* vertexPath, const char* fragmentPath){
-    //Read vertex and fragment glsl files
-    string vertexCode, fragmentCode;
-    ifstream fShaderFile, vShaderFile;
-    vShaderFile.exceptions ( std::ifstream::badbit);
-    fShaderFile.exceptions ( std::ifstream::badbit);
-    string vline;
-    string fline;
+        //Read vertex and fragment glsl files
+        string vertexCode, fragmentCode;
+        ifstream fShaderFile, vShaderFile;
+        vShaderFile.exceptions ( std::ifstream::badbit);
+        fShaderFile.exceptions ( std::ifstream::badbit);
+        string vline;
+        string fline;
 
-    vShaderFile.open(vertexPath);
-    fShaderFile.open(fragmentPath);
+        vShaderFile.open(vertexPath);
+        fShaderFile.open(fragmentPath);
 
         if(!vShaderFile.is_open()){
             cerr << "Could not read the file";
@@ -43,18 +43,18 @@ public:
         vShaderFile.close();
         fShaderFile.close();
 
-    const char* vShaderCode = vertexCode.c_str();
-    const char* fShaderCode = fragmentCode.c_str();
+        const char* vShaderCode = vertexCode.c_str();
+        const char* fShaderCode = fragmentCode.c_str();
 
-    //Compile retrieved shader files
-    unsigned int vertex, fragment;
-    int success;
-    char infoLog[512];
+        //Compile retrieved shader files
+        unsigned int vertex, fragment;
+        int success;
+        char infoLog[512];
 
-    vertex = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertex, 1, &vShaderCode, nullptr); //Sends GLSL source text to GPU
-    glCompileShader(vertex); //Compile into machine code for GPU
-    glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
+        vertex = glCreateShader(GL_VERTEX_SHADER);
+        glShaderSource(vertex, 1, &vShaderCode, nullptr); //Sends GLSL source text to GPU
+        glCompileShader(vertex); //Compile into machine code for GPU
+        glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
         if(!success)
         {
             glGetShaderInfoLog(vertex, 512, nullptr, infoLog);
@@ -106,10 +106,8 @@ public:
                            1, GL_FALSE, glm::value_ptr(mat));
     }
     void setVec3(const std::string &name, const glm::vec3 &vec) const {
-        glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()),
-                           1, GL_FALSE, glm::value_ptr(vec));
+        glUniform3fv(glGetUniformLocation(ID, name.c_str()),
+                     1, glm::value_ptr(vec));
     }
 
-
 };
-

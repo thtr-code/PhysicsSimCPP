@@ -1,8 +1,10 @@
 #include "Grid.h"
 #include <cmath>
 
-Grid::Grid(int gridcount, float gridspacing):
-        gridcount(gridcount), gridspacing(gridspacing)
+Grid::Grid(int gridcount, float gridspacing)
+        : gridcount(gridcount),
+          gridspacing(gridspacing),
+          origin(0.0f, 0.0f, 0.0f)
 {
     generateGrid();
 
@@ -11,16 +13,17 @@ Grid::Grid(int gridcount, float gridspacing):
 
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data() , GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER,
+                 vertices.size() * sizeof(float),
+                 vertices.data(),
+                 GL_DYNAMIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
     glBindVertexArray(0);
-    vertexCount = vertices.size() / 3;
-
+    vertexCount = static_cast<int>(vertices.size() / 3);
 }
-
 
 void Grid::generateGrid(){
     vertices.clear();
@@ -32,8 +35,8 @@ void Grid::generateGrid(){
             float cx = x - (gridcount / 2.0f);
             float cz = z - (gridcount / 2.0f);
 
-            float worldX = cx * gridspacing;
-            float worldZ = cz * gridspacing;
+            float worldX = origin.x + cx * gridspacing;
+            float worldZ = origin.z + cz * gridspacing;
             float worldY = 0.0f;
 
             vertices.push_back(worldX);
@@ -41,6 +44,12 @@ void Grid::generateGrid(){
             vertices.push_back(worldZ);
         }
     }
+}
+
+void Grid::setOrigin(const glm::vec3 &newOrigin) {
+    // Only follow x,z so the grid is still a plane at y = 0
+    origin = glm::vec3(newOrigin.x, 0.0f, newOrigin.z);
+    generateGrid(); // recompute x,z positions; y will be recomputed in update()
 }
 
 void Grid::update(const std::vector<Grid::GravitySource> &sources) {
@@ -54,7 +63,7 @@ void Grid::update(const std::vector<Grid::GravitySource> &sources) {
         float dip = 0.0f;
 
         // Make the grid dip weaker so it stays in view
-        float G = 0.1f;      // was 1.0f before
+        float G = 0.3;
         float soft = 0.5f;
 
         for (const auto &src : sources) {
@@ -85,11 +94,13 @@ void Grid::draw(Shader &shader)
 
     int N = gridcount;
 
+    // rows
     for (int z = 0; z < N; z++) {
         int start = z * N;
         glDrawArrays(GL_LINE_STRIP, start, N);
     }
 
+    // columns
     for (int x = 0; x < N; x++) {
         std::vector<GLuint> columnIndices;
         columnIndices.reserve(N);

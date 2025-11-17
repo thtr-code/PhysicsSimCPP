@@ -1,16 +1,20 @@
 #version 330 core
+
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aColor;
-out vec3 ourColor;
-uniform mat4 transform;
+
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
+uniform float pointSize;
+
+out vec3 vColor;
 
 void main()
 {
-    gl_Position = projection * view * model * vec4(aPos, 1.0);
-    ourColor = aColor;
+    vec4 worldPos = model * vec4(aPos, 1.0);
+    vColor = aColor;
+
+    gl_Position = projection * view * worldPos;
+    gl_PointSize = pointSize;
 }
-
-
